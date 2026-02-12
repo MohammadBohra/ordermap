@@ -1,4 +1,11 @@
 using OrdersService as service from '../../srv/orders';
+// 1. Add the Filter Restrictions to the Service Entity
+annotate service.Orders with @(
+    Capabilities.FilterRestrictions : {
+        RequiresFilter : true,
+        RequiredProperties : [APIName] // This makes it mandatory for the backend/UI
+    }
+);
 annotate service.Orders with @(
     
     UI.HeaderInfo: {
@@ -128,6 +135,7 @@ annotate service.Orders with @(
         }
     }
 );
+
 
 
 
