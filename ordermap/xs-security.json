@@ -1,0 +1,168 @@
+{
+  "xsappname": "ordermapxsappname",
+  "tenant-mode": "dedicated",
+
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WAT",
+      "description": "Display access for store WAT"
+    },
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WAT",
+      "description": "Admin access for store WAT"
+    },
+
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_PSC",
+      "description": "Display access for store PSC"
+    },
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_PSC",
+      "description": "Admin access for store PSC"
+    },
+
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WNW",
+      "description": "Display access for store WNW"
+    },
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WNW",
+      "description": "Admin access for store WNW"
+    },
+
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_ROH",
+      "description": "Display access for store ROH"
+    },
+    {
+      "name": "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_ROH",
+      "description": "Admin access for store ROH"
+    }
+  ],
+
+  "role-templates": [
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_WAT",
+      "description": "Display access for store WAT",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WAT"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_WAT",
+      "description": "Admin access for store WAT",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WAT"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_PSC",
+      "description": "Display access for store PSC",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_PSC"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_PSC",
+      "description": "Admin access for store PSC",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_PSC"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_WNW",
+      "description": "Display access for store WNW",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WNW"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_WNW",
+      "description": "Admin access for store WNW",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WNW"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_ROH",
+      "description": "Display access for store ROH",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_ROH"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_ROH",
+      "description": "Admin access for store ROH",
+      "scope-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_ROH"
+      ]
+    }
+  ],
+
+  "role-collections": [
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_WAT",
+      "description": "Role collection for display access to store WAT",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WAT"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_WAT",
+      "description": "Role collection for admin access to store WAT",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WAT"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_PSC",
+      "description": "Role collection for display access to store PSC",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_PSC"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_PSC",
+      "description": "Role collection for admin access to store PSC",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_PSC"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_WNW",
+      "description": "Role collection for display access to store WNW",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_WNW"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_WNW",
+      "description": "Role collection for admin access to store WNW",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_WNW"
+      ]
+    },
+
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardDisplay_ROH",
+      "description": "Role collection for display access to store ROH",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardDisplay_ROH"
+      ]
+    },
+    {
+      "name": "RC_RO_BigCommDtcOrderDashboardAdmin_ROH",
+      "description": "Role collection for admin access to store ROH",
+      "role-template-references": [
+        "$XSAPPNAME.RC_RO_BigCommDtcOrderDashboardAdmin_ROH"
+      ]
+    }
+  ],
+
+  "attributes": []
+}

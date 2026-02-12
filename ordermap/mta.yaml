@@ -1,0 +1,166 @@
+_schema-version: 3.3.0
+ID: ordermap
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: ordermap-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: ordermap-auth
+  - name: ordermap-connectivity
+  - name: ordermap-destination
+  
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: ordermap-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: ordermap-auth
+  - name: srv-api
+  - name: ordermap-html5-repo-host
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+      content-target: true
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: srv-api
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - ordermapui.zip
+      name: ordermapui
+      target-path: app/
+- name: ordermap-destinations
+  type: com.sap.application.content
+  requires:
+  - name: ordermap-auth
+    parameters:
+      service-key:
+        name: ordermap-auth-key
+  - name: ordermap-html5-repo-host
+    parameters:
+      service-key:
+        name: ordermap-html5-repo-host-key
+  - name: srv-api
+  - name: ordermap-destination
+    parameters:
+      content-target: true
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: ordermap-html5-repository
+          ServiceInstanceName: ordermap-html5-repo-host
+          ServiceKeyName: ordermap-html5-repo-host-key
+          sap.cloud.service: ordermap.service
+        - Authentication: OAuth2UserTokenExchange
+          Name: ordermap-auth
+          ServiceInstanceName: ordermap-auth
+          ServiceKeyName: ordermap-auth-key
+          sap.cloud.service: ordermap.service
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+
+- name: ordermapui
+  type: html5
+  path: app/ordermapui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: ordermap-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      tenant-mode: dedicated
+      xsappname: ordermapxsappname
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: ordermap-connectivity
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: connectivity
+    service-plan: lite
+- name: ordermap-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: srv-api
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+- name: ordermap-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: ordermap-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production

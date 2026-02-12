@@ -1,0 +1,16 @@
+{
+  "ext/controller/CreateOrder.js": 1770477370661,
+  "manifest.json": 1770390692040,
+  "i18n/i18n.properties": 1770750779648,
+  "ext/controller/DisplayOrder.js": 1770392627165,
+  "Component.js": 1768563546500,
+  "Component-dbg.js": 1768563546500,
+  "Component.js.map": 1770750970011,
+  "ext/controller/DisplayOrder-dbg.js": 1770392627165,
+  "ext/controller/DisplayOrder.js.map": 1770750970017,
+  "ext/controller/CreateOrder-dbg.js": 1770477370661,
+  "ext/controller/CreateOrder.js.map": 1770750970043,
+  "Component-preload.js": 1770750970167,
+  "Component-preload.js.map": 1770750970167,
+  "index.html": 1770306843728
+}

@@ -1,0 +1,99 @@
+{
+  "name": "ordermap",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "dependencies": {
+    
+    "@sap-cloud-sdk/http-client": "^4.3.1",
+    "@sap-cloud-sdk/resilience": "^4.3.1",
+    "@sap/cds": "^9",
+    "@sap/xsenv": "^6.0.0",
+    "@sap/xssec": "^4.12.2",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^2",
+    "@sap/cds-dk": "^9",
+    "cds-plugin-ui5": "^0.13.0",
+    "mbt": "^1.2.29",
+    "rimraf": "^5.0.5"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-ordermapui": "cds watch --open ordermapui/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "undeploy": "cf undeploy ordermap --delete-services --delete-service-keys --delete-service-brokers",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1"
+  },
+  "cds": {
+    "requires": {
+      "connectivity": true,
+      "destination": true,
+      "uaa": {
+        "kind": "xsuaa"
+      },      
+      "BigCommerceAPI": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "BigCommerceAPI"
+        }
+      },
+      "SAPAPI": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "RO-ECC-HTTP-100"
+        }
+      },
+      "STORES": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "BigCommDtcStoreServiceDest"
+        }
+      },
+      "CPI": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "CPI"
+        }
+      },
+      "auth": {
+        "[development]": {
+          "kind": "mocked",
+          "users": {
+            "storeAdminWAT": {
+          "password": "test",
+          "roles": [
+            "RC_RO_BigCommDtcOrderDashboardAdmin_WAT"
+          ]
+        },
+        "storeAdminROH": {
+          "password": "test",
+          "roles": [
+            "RC_RO_BigCommDtcOrderDashboardAdmin_ROH"
+          ]
+        },
+        "storeDisplayPSC": {
+          "password": "test",
+          "roles": [
+            "RC_RO_BigCommDtcOrderDashboardDisplay_PSC"
+          ]
+        }
+          }
+        },
+        "[production]": {
+          "kind": "xsuaa"
+        }
+      },
+      "destinations": true,
+      "html5-repo": true,
+      "workzone": true
+    }
+  },
+  "private": true,
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/ordermapui"
+  ]
+}

@@ -1,0 +1,21 @@
+
+# auto generated wildcard
+couponmap/.env
+# auto generated wildcard
+stores/.env
+# auto generated wildcard
+books/.env
+# auto generated wildcard
+secworkbench/.env
+# auto generated wildcard
+orders/.env
+# auto generated wildcard
+ordermap/.env
+stores/app/bigcomdtcstores/webapp/test/integration/pages/JourneyRunner.js
+doorstatus/webapp/test/unit/unitTests.qunit.html
+books/.vscode/extensions.json
+books/.vscode/launch.json
+books/.vscode/settings.json
+books/.vscode/tasks.json
+books/db/src/.hdiconfig
+books/db/data/my.bookshop-Books.csv

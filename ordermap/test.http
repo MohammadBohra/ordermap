@@ -1,0 +1,30 @@
+### Test: Get Stores as WAT Admin
+GET https://port4004-workspaces-ws-0l4en.us21.applicationstudio.cloud.sap/odata/v4/orders/Stores
+Authorization: Basic {{storeAdminWAT}}
+Accept: application/json
+
+###
+
+### Test: Get Stores as PSC Display User
+GET https://port4004-workspaces-ws-0l4en.us21.applicationstudio.cloud.sap/odata/v4/orders/Stores
+Authorization: Basic {{storeDisplayPSC}}
+Accept: application/json
+
+###
+
+### Test: Create SAP Order
+POST https://port4004-workspaces-ws-0l4en.us21.applicationstudio.cloud.sap/odata/v4/orders/create_sales_order
+Authorization: Basic {{storeAdminWAT}}
+Content-Type: application/json
+
+{
+  "OrderId": "12345",
+  "WebServiceID": "WAT"
+}
+
+###
+
+### Test: Display SAP Order (should open URL in browser)
+GET https://port4004-workspaces-ws-0l4en.us21.applicationstudio.cloud.sap/odata/v4/orders/display_sales_order?OrderId=12345&WebServiceID=WAT
+Authorization: Basic {{storeAdminWAT}}
+Accept: application/json
