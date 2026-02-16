@@ -21,6 +21,64 @@ module.exports = cds.service.impl(async function () {
     // In-memory cache (keyed by user + tenant)
     //const storeCache = new Map(); 
 
+function getOrderIdRangeFromWhere(where, fieldName) {
+    let minId = null;
+    let maxId = null;
+
+    if (!Array.isArray(where)) {
+        return { minId, maxId };
+    }
+
+    for (let i = 0; i < where.length; i++) {
+        const token = where[i];
+
+        // Match: OrderId <op> <value>
+        if (token?.ref?.[0] === fieldName) {
+            const operator = where[i + 1];
+            const value = where[i + 2]?.val;
+
+            if (!value || !/^\d+$/.test(String(value))) continue;
+
+            const numericValue = Number(value);
+
+            switch (operator) {
+                case '=':
+                    minId = numericValue;
+                    maxId = numericValue;
+                    break;
+
+                case '>':
+                    minId = numericValue + 1;
+                    break;
+
+                case '>=':
+                    minId = numericValue;
+                    break;
+
+                case '<':
+                    maxId = numericValue - 1;
+                    break;
+
+                case '<=':
+                    maxId = numericValue;
+                    break;
+            }
+        }
+    }
+
+    // ---- Handle open-ended ranges (limit to 100 IDs) ----
+    const MAX_RANGE = 100;
+
+    if (minId && !maxId) {
+        maxId = minId + MAX_RANGE;
+    }
+
+    if (!minId && maxId) {
+        minId = Math.max(1, maxId - MAX_RANGE);
+    }
+
+    return { minId, maxId };
+}
 
 
 function getDateRangeFromWhere(where, fieldName) {
@@ -74,6 +132,15 @@ function getDateRangeFromWhere(where, fieldName) {
         d.setDate(d.getDate() - MAX_RANGE_DAYS);
         fromDate = d.toISOString().slice(0, 10);
     }
+    if (!fromDate && !toDate) {
+        const d1 = new Date();
+        d1.setDate(d1.getDate() - MAX_RANGE_DAYS);
+        fromDate = d1.toISOString().slice(0, 10);
+
+        const d2 = new Date();
+        d2.setDate(d2.getDate());
+        toDate = d2.toISOString().slice(0, 10);
+    }
 
     return { fromDate, toDate };
 }
@@ -121,6 +188,7 @@ function toDateOnly(value) {
     this.on('READ', 'Orders', async (req) => {
         try {
             const where = req.query?.SELECT?.where;
+            const orderId = where?.orderId; // example: "119" OR "119,120,121"
             let APIName;
 
             if (where) {
@@ -146,9 +214,15 @@ function toDateOnly(value) {
           if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
             return req.error(
               400,
-              "Invalid DateCreated filter: fromDate cannot be greater than toDate"
+              "Invalid Date filter: From Date cannot be greater than To Date"
             );
           }
+
+          const { minId, maxId } = getOrderIdRangeFromWhere(where, "OrderId");
+
+          if (minId) queryParams.push(`min_id=${minId}`);
+          if (maxId) queryParams.push(`max_id=${maxId}`);
+
 
           const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
                      
@@ -174,23 +248,11 @@ function toDateOnly(value) {
             if (!response) {                
                 console.error("Orders API Error:", response);
                 return req.error(500, `Big Commerce API error`);
-                
             }
 
-            // Extract date range for SAP filter
-          const bcOrders = response;
-          minDate = bcOrders.reduce(
-            (min, o) => new Date(o.date_created) < min ? new Date(o.date_created) : min,
-            new Date(bcOrders[0].date_created)
-          );
-
-          maxDate = bcOrders.reduce(
-            (max, o) => new Date(o.date_created) > max ? new Date(o.date_created) : max,
-            new Date(bcOrders[0].date_created)
-          );
-
-          const formatSAPDate = d =>
-            d.toISOString().replace('.000Z', '');           
+         
+          const sapMinDate = minDate.replace('Z', '');
+          const sapMaxDate = maxDate.replace('Z', '');         
             
             const sapResponse = await SAPAPI.send({
                 method: "GET",
@@ -198,8 +260,8 @@ function toDateOnly(value) {
                     `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
                     `DtcStoreOrderListSet?$filter=` +
                     `Bigcommstorewebid eq '${WebServiceID}' and (` +
-                    `Bigcommorderdatecreated ge datetime'${formatSAPDate(minDate)}' and ` +
-                    `Bigcommorderdatecreated le datetime'${formatSAPDate(maxDate)}')`
+                    `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
+                    `Bigcommorderdatecreated le datetime'${sapMaxDate}')`
             });
 
             const sapOrders = sapResponse?.d?.results || [];            
@@ -209,7 +271,7 @@ function toDateOnly(value) {
             }
 
             // Merge responses
-            return bcOrders.map(order => {
+            return response.map(order => {
                const sap = sapIndex[order.id];     
               const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
                 ? sap.Sapidocnumber

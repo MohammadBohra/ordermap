@@ -45,27 +45,11 @@ annotate service.Orders with @(
         Value  : OrderId,
         Label  : 'Order ID'
     },
-    // {
-    //   $Type: #WITH_URL,
-    //   Label: 'Order ID',
-    //   Value  : OrderId,
-    //   URL: '/sap/bc/gui/sap/its/webgui?~transaction=VA03&~okcode=ENTR&VBAK-VBELN={OrderId}'
-    // },
-    // {
-    //     $Type  : 'UI.DataField',
-    //     Value  : CustomerId,
-    //     Label  : 'Customer ID'
-    // }
     {
         $Type  : 'UI.DataField',
         Value  : DateCreated,
         Label  : 'Created On'
     },
-    // {
-    //     $Type  : 'UI.DataField',
-    //     Value  : DateModified,
-    //     Label  : 'Last Modified'
-    // },
     {
         $Type  : 'UI.DataField',
         Value  : Status,
@@ -99,7 +83,7 @@ annotate service.Orders with @(
         Label  : 'Message'
     }
     ],
-    UI.SelectionFields: [APIName,DateCreated]
+    UI.SelectionFields: [APIName,DateCreated,OrderId]
 );
 
 
