@@ -84,7 +84,7 @@ function getOrderIdRangeFromWhere(where, fieldName) {
 function getDateRangeFromWhere(where, fieldName) {
     let fromDate = null;
     let toDate = null;
-
+    let defaultDateScenario = false;
     if (!Array.isArray(where)) {
         return { fromDate, toDate };
     }
@@ -140,9 +140,11 @@ function getDateRangeFromWhere(where, fieldName) {
         const d2 = new Date();
         d2.setDate(d2.getDate());
         toDate = d2.toISOString().slice(0, 10);
+
+        defaultDateScenario = true;
     }
 
-    return { fromDate, toDate };
+    return { fromDate, toDate, defaultDateScenario };
 }
 
 function mapDestinationUrlToRealUrl(destinationUrl) {
@@ -188,7 +190,7 @@ function toDateOnly(value) {
     this.on('READ', 'Orders', async (req) => {
         try {
             const where = req.query?.SELECT?.where;
-            const orderId = where?.orderId; // example: "119" OR "119,120,121"
+            
             let APIName;
 
             if (where) {
@@ -204,21 +206,44 @@ function toDateOnly(value) {
                                             
             }
 
-          const { fromDate, toDate } = getDateRangeFromWhere(where, "DateCreated") || {};
-          let { minDate, maxDate } = normalizeDates(fromDate, toDate);
+          const { fromDate, toDate, defaultDateScenario } = getDateRangeFromWhere(where, "DateCreated") || {};
+         
+          const { minId, maxId } = getOrderIdRangeFromWhere(where, "OrderId");
 
           const queryParams = [];
-          if (minDate) queryParams.push(`min_date_created=${minDate}`);
-          if (maxDate) queryParams.push(`max_date_created=${maxDate}`);
+          const hasOrderFilter = !!(minId || maxId);
 
-          if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
-            return req.error(
-              400,
-              "Invalid Date filter: From Date cannot be greater than To Date"
-            );
+          if (!(defaultDateScenario && hasOrderFilter)) {
+          let { minDate, maxDate } = normalizeDates(fromDate, toDate);
+
+            if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
+              return req.error({
+                code: 'INVALID_DATE_RANGE',
+                message: 'From Date cannot be greater than To Date',
+                target: 'DateCreated',
+                status: 400
+              });
+            }
+
+            if (minDate) queryParams.push(`min_date_created=${minDate}`);
+            if (maxDate) queryParams.push(`max_date_created=${maxDate}`);
           }
 
-          const { minId, maxId } = getOrderIdRangeFromWhere(where, "OrderId");
+
+
+          // if (minDate) queryParams.push(`min_date_created=${minDate}`);
+          // if (maxDate) queryParams.push(`max_date_created=${maxDate}`);
+
+          // if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
+          //   return req.error({
+          //     code: 'INVALID_DATE_RANGE',
+          //     message: 'From Date cannot be greater than To Date',
+          //     target: 'DateCreated',
+          //     status: 400
+          //   });
+          // }
+
+          
 
           if (minId) queryParams.push(`min_id=${minId}`);
           if (maxId) queryParams.push(`max_id=${maxId}`);
@@ -247,22 +272,94 @@ function toDateOnly(value) {
             });
             if (!response) {                
                 console.error("Orders API Error:", response);
-                return req.error(500, `Big Commerce API error`);
+              return req.error({
+                code: 'BIGCOMM_API_ERROR',
+                message: 'No Data found for the selection criteria',                
+                status: 400
+              });
             }
 
-         
-          const sapMinDate = minDate.replace('Z', '');
-          const sapMaxDate = maxDate.replace('Z', '');         
+          let finalFilter = '';
+
+          // if (defaultDateScenario && hasOrderFilter) {
+
+            // ---------------------------------------------------
+            // Scenario 2: No Date Range → Use Exact Dates from API
+            // ---------------------------------------------------
+
+            const uniqueDates = [
+              ...new Set(
+                response.map(o =>
+                  new Date(o.date_created).toISOString().split('.')[0]
+                )
+              )
+            ];
+
+            if (uniqueDates.length === 0) {
+              throw new Error('No valid order dates available from BigCommerce response');
+            }
+
+            const dateFilter = uniqueDates
+              .map(d => `Bigcommorderdatecreated eq datetime'${d}'`)
+              .join(' or ');
+
+            finalFilter =
+              `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
+
+          // } else {
+
+          //   // ---------------------------------------------------
+          //   // Scenario 1: Date Range Provided → Use GE / LE
+          //   // ---------------------------------------------------
+
+          //   const sapMinDate = minDate.replace('Z', '');
+          //   const sapMaxDate = maxDate.replace('Z', '');
+
+          //   finalFilter =
+          //     `Bigcommstorewebid eq '${WebServiceID}' and (` +
+          //     `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
+          //     `Bigcommorderdatecreated le datetime'${sapMaxDate}')`;
+          // }
+          //console.log(finalFilter);
+          // ---------------------------------------------------
+          // Call SAP OData Service
+          // ---------------------------------------------------
+
+          const sapResponse = await SAPAPI.send({
+            method: "GET",
+            path:
+              `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
+              `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
+          });
+
+        //  if(undefined == minDate || undefined == maxDate)
+        //  {
+        //    const uniqueDates = [
+        //      ...new Set(
+        //        response.map(o =>
+        //          new Date(o.date_created).toISOString().split('.')[0]
+        //        )
+        //      )
+        //    ];
+        //    const dateFilter = uniqueDates
+        //      .map(d => `Bigcommorderdatecreated eq datetime'${d}'`)
+        //      .join(' or ');
+
+        //    const finalFilter =
+        //      `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
+        //  }
+        //   const sapMinDate = minDate.replace('Z', '');
+        //   const sapMaxDate = maxDate.replace('Z', '');         
             
-            const sapResponse = await SAPAPI.send({
-                method: "GET",
-                path:
-                    `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
-                    `DtcStoreOrderListSet?$filter=` +
-                    `Bigcommstorewebid eq '${WebServiceID}' and (` +
-                    `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
-                    `Bigcommorderdatecreated le datetime'${sapMaxDate}')`
-            });
+        //     // const sapResponse = await SAPAPI.send({
+        //     //     method: "GET",
+        //     //     path:
+        //     //         `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
+        //     //         `DtcStoreOrderListSet?$filter=` +
+        //     //         `Bigcommstorewebid eq '${WebServiceID}' and (` +
+        //     //         `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
+        //     //         `Bigcommorderdatecreated le datetime'${sapMaxDate}')`
+        //     // });
 
             const sapOrders = sapResponse?.d?.results || [];            
             const sapIndex = {};
@@ -361,7 +458,7 @@ function toDateOnly(value) {
   if (!req.user.is(role)) {    
     return req.error(
       403,
-      `Unable to proceed as you do not have SAP order creation authorization for store ${APIName}`
+      `Unable to proceed as you do not have SAP order creation authorization for the selected Store`
     );
   }
 }

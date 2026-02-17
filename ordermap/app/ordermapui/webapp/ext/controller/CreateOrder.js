@@ -290,7 +290,7 @@ if (shouldCallOrderCreationAPI) {
 
 
       } catch (e) {
-        MessageToast.show("Order creation failed : " + e.error.message );
+        MessageBox.error(e.error.message );
       }
     },
 
