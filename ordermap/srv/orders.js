@@ -272,11 +272,12 @@ function toDateOnly(value) {
             });
             if (!response) {                
                 console.error("Orders API Error:", response);
-              return req.error({
-                code: 'BIGCOMM_API_ERROR',
-                message: 'No Data found for the selection criteria',                
-                status: 400
-              });
+              // return req.warn({
+              //   code: 'BIGCOMM_API_ERROR',
+              //   message: 'No Data found for the selection criteria',                
+              //   status: 400
+              // });
+              req.warn("No Data found for the selection criteria");
             }
 
           let finalFilter = '';
@@ -306,21 +307,7 @@ function toDateOnly(value) {
             finalFilter =
               `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
 
-          // } else {
-
-          //   // ---------------------------------------------------
-          //   // Scenario 1: Date Range Provided → Use GE / LE
-          //   // ---------------------------------------------------
-
-          //   const sapMinDate = minDate.replace('Z', '');
-          //   const sapMaxDate = maxDate.replace('Z', '');
-
-          //   finalFilter =
-          //     `Bigcommstorewebid eq '${WebServiceID}' and (` +
-          //     `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
-          //     `Bigcommorderdatecreated le datetime'${sapMaxDate}')`;
-          // }
-          //console.log(finalFilter);
+          
           // ---------------------------------------------------
           // Call SAP OData Service
           // ---------------------------------------------------
@@ -332,34 +319,6 @@ function toDateOnly(value) {
               `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
           });
 
-        //  if(undefined == minDate || undefined == maxDate)
-        //  {
-        //    const uniqueDates = [
-        //      ...new Set(
-        //        response.map(o =>
-        //          new Date(o.date_created).toISOString().split('.')[0]
-        //        )
-        //      )
-        //    ];
-        //    const dateFilter = uniqueDates
-        //      .map(d => `Bigcommorderdatecreated eq datetime'${d}'`)
-        //      .join(' or ');
-
-        //    const finalFilter =
-        //      `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
-        //  }
-        //   const sapMinDate = minDate.replace('Z', '');
-        //   const sapMaxDate = maxDate.replace('Z', '');         
-            
-        //     // const sapResponse = await SAPAPI.send({
-        //     //     method: "GET",
-        //     //     path:
-        //     //         `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
-        //     //         `DtcStoreOrderListSet?$filter=` +
-        //     //         `Bigcommstorewebid eq '${WebServiceID}' and (` +
-        //     //         `Bigcommorderdatecreated ge datetime'${sapMinDate}' and ` +
-        //     //         `Bigcommorderdatecreated le datetime'${sapMaxDate}')`
-        //     // });
 
             const sapOrders = sapResponse?.d?.results || [];            
             const sapIndex = {};
@@ -403,7 +362,7 @@ function toDateOnly(value) {
 
         } catch (e) {
             console.error('Orders error:', e);
-            req.error(500, 'Failed to fetch Orders from BigCommerce');
+            req.warn('Failed to fetch Orders from BigCommerce');
         }
     });
 

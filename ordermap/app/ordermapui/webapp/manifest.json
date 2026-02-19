@@ -106,6 +106,15 @@
           "target": "OrdersObjectPage"
         }
       ],
+      "extends": {
+    "extensions": {
+      "sap.ui.controllerExtensions": {
+        "sap.suite.ui.generic.template.ListReport.view.OrdersList": {
+          "controllerName": "ordermapui.ext.controller.ListReportExt"
+        }
+      }
+    }
+  },
       "targets": {
         "OrdersList": {
           "type": "Component",

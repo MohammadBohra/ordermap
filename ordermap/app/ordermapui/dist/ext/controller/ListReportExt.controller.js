@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/message/MessageManager"],function(e){"use strict";return{onBeforeRebindTableExtension:function(e){var s=sap.ui.getCore().getMessageManager();s.removeAllMessages()}}});
+//# sourceMappingURL=ListReportExt.controller.js.map

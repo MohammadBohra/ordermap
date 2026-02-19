@@ -90,7 +90,7 @@ if (shouldCallOrderCreationAPI) {
     }
 
     MessageBox.error(sMessage);
-
+    sap.ui.getCore().getMessageManager().removeAllMessages();
     // VERY IMPORTANT: prevent FE from rethrowing
     return Promise.reject(e);
   });
@@ -113,6 +113,7 @@ if (shouldCallOrderCreationAPI) {
             arr = JSON.parse(response);
           } catch (e) {
             sap.m.MessageBox.error("Failed to parse response from server.");
+            sap.ui.getCore().getMessageManager().removeAllMessages();
             return;
           }
         } else if (Array.isArray(response)) {
@@ -224,6 +225,7 @@ if (shouldCallOrderCreationAPI) {
             arr = JSON.parse(response);
           } catch (e) {
             sap.m.MessageBox.error("Failed to parse response from server.");
+            sap.ui.getCore().getMessageManager().removeAllMessages();
             return;
           }
         } else if (Array.isArray(response)) {
@@ -291,6 +293,7 @@ if (shouldCallOrderCreationAPI) {
 
       } catch (e) {
         MessageBox.error(e.error.message );
+       sap.ui.getCore().getMessageManager().removeAllMessages();
       }
     },
 
