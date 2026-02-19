@@ -312,30 +312,30 @@ function toDateOnly(value) {
           // Call SAP OData Service
           // ---------------------------------------------------
 
-          const sapResponse = await SAPAPI.send({
-            method: "GET",
-            path:
-              `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
-              `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
-          });
+          // const sapResponse = await SAPAPI.send({
+          //   method: "GET",
+          //   path:
+          //     `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
+          //     `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
+          // });
 
 
-            const sapOrders = sapResponse?.d?.results || [];            
-            const sapIndex = {};
-            for (const s of sapOrders) {
-                sapIndex[s.Bigcommorderid] = s;
-            }
+          //   const sapOrders = sapResponse?.d?.results || [];            
+          //   const sapIndex = {};
+          //   for (const s of sapOrders) {
+          //       sapIndex[s.Bigcommorderid] = s;
+          //   }
 
             // Merge responses
             return response.map(order => {
-               const sap = sapIndex[order.id];     
-              const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
-                ? sap.Sapidocnumber
-                : null;
+              //  const sap = sapIndex[order.id];     
+              // const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
+              //   ? sap.Sapidocnumber
+              //   : null;
 
-              const sapOrderNumber = sap?.Sapordernumber && !/^0+$/.test(sap.Sapordernumber)
-                ? sap.Sapordernumber
-                : null;
+              // const sapOrderNumber = sap?.Sapordernumber && !/^0+$/.test(sap.Sapordernumber)
+              //   ? sap.Sapordernumber
+              //   : null;
 
                 return {
                     APIName,
@@ -348,13 +348,13 @@ function toDateOnly(value) {
                     TotalIncTax: Number(order.total_inc_tax),
 
                     // SAP-enriched fields
-                    SapOrderId: sapOrderNumber || null,  
-                    // SapOrderId: '99999' || null,                  
-                    IdocNumber: idocNumber,                    
-                    // IdocNumber: '888888',                    
-                    MessageType: sap?.Messagetype || null,
-                    // MessageType: 'E' || null,
-                    Message: sap?.Message || null
+                    // SapOrderId: sapOrderNumber || null,  
+                    // // SapOrderId: '99999' || null,                  
+                    // IdocNumber: idocNumber,                    
+                    // // IdocNumber: '888888',                    
+                    // MessageType: sap?.Messagetype || null,
+                    // // MessageType: 'E' || null,
+                    // Message: sap?.Message || null
                 };
             });
 

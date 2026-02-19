@@ -133,16 +133,16 @@ if (shouldCallOrderCreationAPI) {
 
         const orderNumber = result.OrderNumber || '';
         const idocNumber = result.IDOCNumber || '';
-        const msgType = result.MsgType; // may be undefined
+        const msgType = result.MsgType;
         const message = result.message || '';
 
         if (!msgType) {
           // MsgType missing → generic error
-          sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnknown error occurred.`);
+          sap.m.MessageBox.error(`SAP Order creation for BigCommerce order ${orderNumber} failed.\n${message || 'Unknown error occurred.'}`);
         } else if (msgType === 'S') {
           // Success
           sap.m.MessageBox.success(
-            `SAP IDoc created successfully for Order ${orderNumber}.\nIDoc Number: ${idocNumber || 'N/A'}`
+            `SAP IDoc created successfully for Bigcommerce order ${orderNumber}.\nIDoc Number: ${idocNumber || 'N/A'}`
           );
         } else if (msgType === 'E') {
           // Error
@@ -151,7 +151,7 @@ if (shouldCallOrderCreationAPI) {
           );
         } else {
           // Any other MsgType → treat as error
-          sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnexpected message type: ${msgType}`);
+          sap.m.MessageBox.information(`${message}`);
         }
       }
       else {

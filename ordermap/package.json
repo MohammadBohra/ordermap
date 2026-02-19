@@ -69,8 +69,8 @@
         "storeDisplayROH": {
           "password": "test",
           "roles": [
-            "RC_RO_BigCommDtcOrderDashboardDisplay_ROH"
-            
+            "RC_RO_BigCommDtcOrderDashboardDisplay_ROH",
+             "RC_RO_BigCommDtcOrderDashboardAdmin_ROH"
           ]
         },
         "storeDisplayPSC": {
