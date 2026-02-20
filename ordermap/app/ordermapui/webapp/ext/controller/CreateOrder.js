@@ -27,6 +27,7 @@ sap.ui.define([
         const SapOrderId = oRowData.SapOrderId;
         const IdocNumber = oRowData.IdocNumber;
         const MessageType = oRowData.MessageType;
+        const Message = oRowData.Message;
         const isBlank = v =>
           v === null ||
           v === undefined ||
@@ -158,15 +159,15 @@ if (shouldCallOrderCreationAPI) {
         // Informational messages
         if (!isBlank(SapOrderId)) {
           sap.m.MessageBox.information(
-            `SAP Order already exists.\nSAP Order Number: ${SapOrderId}`
+            `SAP order already exists.\nSAP order number: ${SapOrderId}`
           );
         } else if (!isBlank(IdocNumber)) {
           sap.m.MessageBox.information(
-            `SAP Order creation is already in progress.\nIDoc Number: ${IdocNumber}`
+            `SAP order creation is already in progress.\nIDoc number: ${IdocNumber}`
           );
         } else if (MessageType && MessageType !== "E") {
           sap.m.MessageBox.information(
-            `SAP Order creation cannot be triggered.\nCurrent Message Type: ${MessageType}`
+            `SAP order creation cannot be triggered.\nCurrent message type: ${Message}`
           );
         } else {
           sap.m.MessageBox.information(
@@ -278,7 +279,7 @@ if (shouldCallOrderCreationAPI) {
           );
         } else if (MessageType && MessageType !== "E") {
           sap.m.MessageBox.information(
-            `SAP Order creation cannot be triggered.\nCurrent Message Type: ${MessageType}`
+            `SAP Order creation cannot be triggered.\nMissing SAP information`
           );
         } else {
           sap.m.MessageBox.information(

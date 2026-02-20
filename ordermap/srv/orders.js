@@ -202,7 +202,7 @@ function toDateOnly(value) {
 
             if (!APIName) {
                 
-                return req.error(500, 'Please Select a Store Name');  
+                return req.error(500, 'Please select a store name');  
                                             
             }
 
@@ -219,7 +219,7 @@ function toDateOnly(value) {
             if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
               return req.error({
                 code: 'INVALID_DATE_RANGE',
-                message: 'From Date cannot be greater than To Date',
+                message: 'From date cannot be greater than to date',
                 target: 'DateCreated',
                 status: 400
               });
@@ -277,7 +277,7 @@ function toDateOnly(value) {
               //   message: 'No Data found for the selection criteria',                
               //   status: 400
               // });
-              req.warn("No Data found for the selection criteria");
+              req.warn("No data found for the selection criteria");
             }
 
           let finalFilter = '';
@@ -312,30 +312,30 @@ function toDateOnly(value) {
           // Call SAP OData Service
           // ---------------------------------------------------
 
-          // const sapResponse = await SAPAPI.send({
-          //   method: "GET",
-          //   path:
-          //     `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
-          //     `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
-          // });
+          const sapResponse = await SAPAPI.send({
+            method: "GET",
+            path:
+              `/sap/opu/odata/sap/ZSD_BIGCOMM_SALESORDER_DTC_SRV/` +
+              `DtcStoreOrderListSet?$filter=${encodeURIComponent(finalFilter)}`
+          });
 
 
-          //   const sapOrders = sapResponse?.d?.results || [];            
-          //   const sapIndex = {};
-          //   for (const s of sapOrders) {
-          //       sapIndex[s.Bigcommorderid] = s;
-          //   }
+            const sapOrders = sapResponse?.d?.results || [];            
+            const sapIndex = {};
+            for (const s of sapOrders) {
+                sapIndex[s.Bigcommorderid] = s;
+            }
 
             // Merge responses
             return response.map(order => {
-              //  const sap = sapIndex[order.id];     
-              // const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
-              //   ? sap.Sapidocnumber
-              //   : null;
+               const sap = sapIndex[order.id];     
+              const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
+                ? sap.Sapidocnumber
+                : null;
 
-              // const sapOrderNumber = sap?.Sapordernumber && !/^0+$/.test(sap.Sapordernumber)
-              //   ? sap.Sapordernumber
-              //   : null;
+              const sapOrderNumber = sap?.Sapordernumber && !/^0+$/.test(sap.Sapordernumber)
+                ? sap.Sapordernumber
+                : null;
 
                 return {
                     APIName,
@@ -348,13 +348,13 @@ function toDateOnly(value) {
                     TotalIncTax: Number(order.total_inc_tax),
 
                     // SAP-enriched fields
-                    // SapOrderId: sapOrderNumber || null,  
-                    // // SapOrderId: '99999' || null,                  
-                    // IdocNumber: idocNumber,                    
-                    // // IdocNumber: '888888',                    
-                    // MessageType: sap?.Messagetype || null,
-                    // // MessageType: 'E' || null,
-                    // Message: sap?.Message || null
+                    SapOrderId: sapOrderNumber || null,  
+                    // SapOrderId: '99999' || null,                  
+                    IdocNumber: idocNumber,                    
+                    // IdocNumber: '888888',                    
+                    MessageType: sap?.Messagetype || null,
+                    // MessageType: 'E' || null,
+                    Message: sap?.Message || null
                 };
             });
 
@@ -362,7 +362,7 @@ function toDateOnly(value) {
 
         } catch (e) {
             console.error('Orders error:', e);
-            req.warn('Failed to fetch Orders from BigCommerce');
+            req.warn('Failed to fetch orders from BigCommerce');
         }
     });
 
@@ -417,7 +417,7 @@ function toDateOnly(value) {
   if (!req.user.is(role)) {    
     return req.error(
       403,
-      `Unable to proceed as you do not have SAP order creation authorization for the selected Store`
+      `Order creation isn’t allowed for your account at this store. Please contact an administrator.`
     );
   }
 }
@@ -451,7 +451,7 @@ async function getStoreByAPIName(APIName) {
     });
 
     if (!Array.isArray(response.value)) {
-      req.error(502, 'Invalid response from Store service');
+      req.error(502, 'Invalid response from store service');
     }
 
     // Map response
@@ -480,7 +480,7 @@ async function getStoreByAPIName(APIName) {
 
   } catch (err) {
     console.error('Stores READ error:', err);
-    req.error(500, 'Failed to fetch Stores');
+    req.error(500, 'Failed to fetch stores');
   }
 });
 
