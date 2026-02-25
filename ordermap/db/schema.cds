@@ -5,6 +5,7 @@ using { managed } from '@sap/cds/common';
 //@odata.draft.enabled
 
 @cds.persistence.skip
+
 entity Orders : managed {
 
   /* Store / API info */

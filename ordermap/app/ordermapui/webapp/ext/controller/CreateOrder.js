@@ -213,59 +213,83 @@ if (shouldCallOrderCreationAPI) {
         await oContext.execute();
         const oResult = oContext.getBoundContext().getObject();
 
-        let response = oResult.payload;
-        if (response.length === 0) {
-          sap.m.MessageBox.error("Unknown error occurred. No response received.");
-          return;
-        }
+        // let response = oResult.payload;
+        // if (response.length === 0) {
+        //   sap.m.MessageBox.error("Unknown error occurred. No response received.");
+        //   return;
+        // }
 
-        // Step 1: parse JSON if it's a string
-        let arr;
-        if (typeof response === "string") {
-          try {
-            arr = JSON.parse(response);
-          } catch (e) {
-            sap.m.MessageBox.error("Failed to parse response from server.");
-            sap.ui.getCore().getMessageManager().removeAllMessages();
-            return;
-          }
-        } else if (Array.isArray(response)) {
-          arr = response;
-        } else {
-          sap.m.MessageBox.error("Invalid response format from server.");
-          return;
-        }
+        // // Step 1: parse JSON if it's a string
+        // let arr;
+        // if (typeof response === "string") {
+        //   try {
+        //     arr = JSON.parse(response);
+        //   } catch (e) {
+        //     sap.m.MessageBox.error("Failed to parse response from server.");
+        //     sap.ui.getCore().getMessageManager().removeAllMessages();
+        //     return;
+        //   }
+        // } else if (Array.isArray(response)) {
+        //   arr = response;
+        // } else {
+        //   sap.m.MessageBox.error("Invalid response format from server.");
+        //   return;
+        // }
 
-        // Step 2: ensure we have at least one result
-        if (!arr || arr.length === 0) {
-          sap.m.MessageBox.error("No response data received.");
-          return;
-        }
+        // // Step 2: ensure we have at least one result
+        // if (!arr || arr.length === 0) {
+        //   sap.m.MessageBox.error("No response data received.");
+        //   return;
+        // }
 
-        const result = arr[0]; // always first object
+        // const result = arr[0]; // always first object
 
-        const orderNumber = result.OrderNumber || '';
-        const idocNumber = result.IDOCNumber || '';
-        const msgType = result.MsgType; // may be undefined
-        const message = result.message || '';
+        const result = oContext.getBoundContext().getObject();
+
+        const orderNumber = result.SapOrderId || '';
+        const idocNumber = result.IdocNumber || '';
+        const msgType = result.MessageType;
+        const message = result.Message || '';
+
+        // const orderNumber = result.OrderNumber || '';
+        // const idocNumber = result.IDOCNumber || '';
+        // const msgType = result.MsgType; // may be undefined
+        // const message = result.message || '';
 
         if (!msgType) {
-          // MsgType missing → generic error
-          sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnknown error occurred.`);
-        } else if (msgType === 'S') {
-          // Success
-          sap.m.MessageBox.success(
-            `SAP IDoc created successfully for Order ${orderNumber}.\nIDoc Number: ${idocNumber || 'N/A'}`
-          );
-        } else if (msgType === 'E') {
-          // Error
-          sap.m.MessageBox.error(
-            `Order ${orderNumber} creation failed.\n${message || 'Unknown error occurred.'}`
-          );
-        } else {
-          // Any other MsgType → treat as error
-          sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnexpected message type: ${msgType}`);
+          MessageBox.error("Order creation failed. Unknown error occurred.");
         }
+        else if (msgType === 'S') {
+          MessageBox.success(
+            `SAP IDoc created successfully for BigCommerce order ${result.OrderId}.\nIDoc Number: ${idocNumber || 'N/A'}`
+          );
+        }
+        else if (msgType === 'E') {
+          MessageBox.error(
+            `Order ${result.OrderId} creation failed.\n${message || 'Unknown error occurred.'}`
+          );
+        }
+        else {
+          MessageBox.information(message || "Unexpected response received.");
+        }
+
+        // if (!msgType) {
+        //   // MsgType missing → generic error
+        //   sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnknown error occurred.`);
+        // } else if (msgType === 'S') {
+        //   // Success
+        //   sap.m.MessageBox.success(
+        //     `SAP IDoc created successfully for Order ${orderNumber}.\nIDoc Number: ${idocNumber || 'N/A'}`
+        //   );
+        // } else if (msgType === 'E') {
+        //   // Error
+        //   sap.m.MessageBox.error(
+        //     `Order ${orderNumber} creation failed.\n${message || 'Unknown error occurred.'}`
+        //   );
+        // } else {
+        //   // Any other MsgType → treat as error
+        //   sap.m.MessageBox.error(`Order ${orderNumber} creation failed.\nUnexpected message type: ${msgType}`);
+        // }
       }
       else {
         // Informational messages

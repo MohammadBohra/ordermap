@@ -53,7 +53,7 @@
       "CPI": {
         "kind": "rest",
         "credentials": {
-          "destination": "CPI"
+          "destination": "CG_RO_BAS_CPI"
         }
       },
       "auth": {

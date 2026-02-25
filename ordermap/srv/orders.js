@@ -191,20 +191,41 @@ function toDateOnly(value) {
         try {
             const where = req.query?.SELECT?.where;
             
-            let APIName;
+            // let APIName;
 
-            if (where) {
-                const apiNameIndex = where.findIndex(c => c.ref && c.ref[0] === 'APIName');
-                if (apiNameIndex !== -1 && where[apiNameIndex + 2]?.val) {
-                    APIName = where[apiNameIndex + 2].val;
-                }
+            // if (where) {
+            //     const apiNameIndex = where.findIndex(c => c.ref && c.ref[0] === 'APIName');
+            //     if (apiNameIndex !== -1 && where[apiNameIndex + 2]?.val) {
+            //         APIName = where[apiNameIndex + 2].val;
+            //     }
+            // }
+
+          let APIName;
+          let WebID;
+
+          // 1️⃣ Try extracting from filter
+          if (where) {
+            const apiNameIndex = where.findIndex(c => c.ref?.[0] === 'APIName');
+            if (apiNameIndex !== -1) {
+              APIName = where[apiNameIndex + 2]?.val;
             }
 
-            if (!APIName) {
+            const webServiceIndex = where.findIndex(c => c.ref?.[0] === 'WebServiceID');
+            if (webServiceIndex !== -1) {
+              WebID = where[webServiceIndex + 2]?.val;
+            }
+          }
+
+          // 2️⃣ If single object read, get from keys
+          if (!WebID && req.data?.WebServiceID) {
+            WebID = req.data.WebServiceID;
+          }
+
+            // if (!APIName) {
                 
-                return req.error(500, 'Please select a store name');  
+            //     return req.error(500, 'Please select a store name');  
                                             
-            }
+            // }
 
           const { fromDate, toDate, defaultDateScenario } = getDateRangeFromWhere(where, "DateCreated") || {};
          
@@ -230,19 +251,6 @@ function toDateOnly(value) {
           }
 
 
-
-          // if (minDate) queryParams.push(`min_date_created=${minDate}`);
-          // if (maxDate) queryParams.push(`max_date_created=${maxDate}`);
-
-          // if (minDate && maxDate && new Date(minDate) > new Date(maxDate)) {
-          //   return req.error({
-          //     code: 'INVALID_DATE_RANGE',
-          //     message: 'From Date cannot be greater than To Date',
-          //     target: 'DateCreated',
-          //     status: 400
-          //   });
-          // }
-
           
 
           if (minId) queryParams.push(`min_id=${minId}`);
@@ -251,11 +259,23 @@ function toDateOnly(value) {
 
           const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
                      
-          const store = await getStoreByAPIName(APIName)            
+          // const store = await getStoreByAPIName(APIName)            
             
-            if (!store) {
-                return req.error(404, `No store found for APIName '${APIName}'`);
-            }
+          //   if (!store) {
+          //       return req.error(404, `No store found for APIName '${APIName}'`);
+          //   }
+
+          let store;
+
+          if (APIName) {
+            store = await getStoreByAPIName(APIName);
+          } else if (WebID) {
+            store = await getStoreByWebServiceID(WebID);
+          }
+
+          if (!store) {
+            return []; 
+          }
             const storeHash = store.StoreHash;
             const authToken = store.AuthToken;
             const WebServiceID = store.WebServiceID;
@@ -288,24 +308,47 @@ function toDateOnly(value) {
             // Scenario 2: No Date Range → Use Exact Dates from API
             // ---------------------------------------------------
 
-            const uniqueDates = [
-              ...new Set(
-                response.map(o =>
-                  new Date(o.date_created).toISOString().split('.')[0]
-                )
-              )
-            ];
+            // const uniqueDates = [
+            //   ...new Set(
+            //     response.map(o =>
+            //       new Date(o.date_created).toISOString().split('.')[0]
+            //     )
+            //   )
+            // ];
 
-            if (uniqueDates.length === 0) {
-              throw new Error('No valid order dates available from BigCommerce response');
-            }
+            // if (uniqueDates.length === 0) {
+            //   throw new Error('No valid order dates available from BigCommerce response');
+            // }
 
-            const dateFilter = uniqueDates
-              .map(d => `Bigcommorderdatecreated eq datetime'${d}'`)
-              .join(' or ');
+            // const dateFilter = uniqueDates
+            //   .map(d => `Bigcommorderdatecreated eq datetime'${d}'`)
+            //   .join(' or ');
 
-            finalFilter =
-              `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
+            // finalFilter =
+            //   `Bigcommstorewebid eq '${WebServiceID}' and (${dateFilter})`;
+
+
+              // ***********************************************
+              // Extract all order IDs from BigCommerce response
+          const orderIds = response
+            .map(o => Number(o.id))
+            .filter(id => !isNaN(id));
+
+          if (orderIds.length === 0) {
+            throw new Error('No valid order IDs available from BigCommerce response');
+          }
+
+          // Determine lowest and highest order IDs
+          const lowestOrderId = Math.min(...orderIds);
+          const highestOrderId = Math.max(...orderIds);
+
+          // Build SAP filter using order ID range
+          finalFilter =
+            `Bigcommstorewebid eq '${WebServiceID}' and ` +
+            `(Bigcommorderid ge '${lowestOrderId}' and Bigcommorderid le '${highestOrderId}')`;
+
+          // console.log("Final SAP Filter:", finalFilter);
+              // &&&&&&&&&
 
           
           // ---------------------------------------------------
@@ -327,7 +370,7 @@ function toDateOnly(value) {
             }
 
             // Merge responses
-            return response.map(order => {
+            const result = response.map(order => {
                const sap = sapIndex[order.id];     
               const idocNumber = sap?.Sapidocnumber && !/^0+$/.test(sap.Sapidocnumber)
                 ? sap.Sapidocnumber
@@ -337,8 +380,8 @@ function toDateOnly(value) {
                 ? sap.Sapordernumber
                 : null;
 
-                return {
-                    APIName,
+               return {
+                    APIName:APIName,
                     OrderId: order.id,
                     WebServiceID:WebServiceID,
                     CustomerId: order.customer_id,
@@ -356,7 +399,13 @@ function toDateOnly(value) {
                     // MessageType: 'E' || null,
                     Message: sap?.Message || null
                 };
+
+             
             });
+             result.sort((a, b) => {
+                return new Date(b.DateCreated) - new Date(a.DateCreated);
+              });
+              return result;
 
          
 
@@ -385,8 +434,16 @@ function toDateOnly(value) {
     });
 
     console.log(response);
+      // return {
+      //   payload: JSON.stringify(response)
+      // };
       return {
-        payload: JSON.stringify(response)
+        OrderId,
+        WebServiceID,
+        SapOrderId: response?.[0]?.OrderNumber ?? null,
+        IdocNumber: response?.[0]?.IDOCNumber ?? null,
+        MessageType: response?.[0]?.MsgType ?? null,
+        Message: response?.[0]?.message ?? null
       };
     
 
@@ -432,6 +489,17 @@ async function getStoreByAPIName(APIName) {
   const response = await STORESDEST.send({
     method: 'GET',
     path: `/catalog/Stores?$filter=APIName eq '${APIName}'`,
+    headers: { Accept: 'application/json' }
+  });
+
+  return response?.value?.[0] ?? null;
+}
+async function getStoreByWebServiceID(WebServiceID) {
+  const STORESDEST = await cds.connect.to('STORES');
+
+  const response = await STORESDEST.send({
+    method: 'GET',
+    path: `/catalog/Stores?$filter=WebServiceID eq '${WebServiceID}'`,
     headers: { Accept: 'application/json' }
   });
 

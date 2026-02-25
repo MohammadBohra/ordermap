@@ -39,3 +39,13 @@ annotate OrdersService.Orders with @(
   UI.UpdateHidden: { $edmJson: { $Path: '/OrdersService.EntityContainer/FeatureControl/operationHidden' } },
   UI.DeleteHidden: { $edmJson: { $Path: '/OrdersService.EntityContainer/FeatureControl/operationHidden' } }
 );
+annotate OrdersService.Orders with @(
+  Common.SideEffects #create_sales_order : {
+    TargetProperties : [
+      IdocNumber,
+      Message,
+      MessageType,
+      SapOrderId
+    ]
+  }
+);
