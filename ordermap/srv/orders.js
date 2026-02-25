@@ -2,9 +2,9 @@ const cds = require('@sap/cds');
 const { getDestination } = require('@sap-cloud-sdk/connectivity');
 
 module.exports = cds.service.impl(async function () {
-    const BigCommerceAPI = await cds.connect.to("BigCommerceAPI");   
-    const SAPAPI = await cds.connect.to("SAPAPI"); 
-    const CPI = await cds.connect.to("CPI");  
+    const BigCommerceAPI = await cds.connect.to("BigCommerceAPI");   // BigCommerceAPI Destination maintained in SAP BTP Subaccount
+    const SAPAPI = await cds.connect.to("SAPAPI"); // RO-ECC-HTTP-100 destination maintained in BTP Subaccount
+    const CPI = await cds.connect.to("CPI");  // CG_RO_BAS_CPI destination maintained in BTP Subaccount
     const { Stores } = cds.entities('OrdersService');
 
     const { Orders } = cds.entities('OrdersService');
@@ -347,10 +347,7 @@ function toDateOnly(value) {
             `Bigcommstorewebid eq '${WebServiceID}' and ` +
             `(Bigcommorderid ge '${lowestOrderId}' and Bigcommorderid le '${highestOrderId}')`;
 
-          // console.log("Final SAP Filter:", finalFilter);
-              // &&&&&&&&&
-
-          
+    
           // ---------------------------------------------------
           // Call SAP OData Service
           // ---------------------------------------------------
@@ -398,6 +395,7 @@ function toDateOnly(value) {
                     MessageType: sap?.Messagetype || null,
                     // MessageType: 'E' || null,
                     Message: sap?.Message || null
+                    //  Message: 'Currency issue' || null
                 };
 
              
@@ -434,9 +432,6 @@ function toDateOnly(value) {
     });
 
     console.log(response);
-      // return {
-      //   payload: JSON.stringify(response)
-      // };
       return {
         OrderId,
         WebServiceID,
