@@ -400,10 +400,19 @@ function toDateOnly(value) {
 
              
             });
-             result.sort((a, b) => {
-                return new Date(b.DateCreated) - new Date(a.DateCreated);
-              });
-              return result;
+            //  result.sort((a, b) => {
+            //     return new Date(b.DateCreated) - new Date(a.DateCreated);
+            //   });
+            //   return result;
+          result.sort((a, b) => {
+            // Primary sort: DateCreated DESC
+            const dateDiff = new Date(b.DateCreated) - new Date(a.DateCreated);
+            if (dateDiff !== 0) return dateDiff;
+
+            // Secondary sort: OrderId DESC
+            return b.OrderId - a.OrderId;
+          });
+          return result;
 
          
 
